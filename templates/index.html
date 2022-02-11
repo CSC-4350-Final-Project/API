@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href={{ url_for( 'static', filename='style.css' ) }} />
+    <h1>Bingyi's favorite movie</h1>
+</head>
+
+<body>
+    <h2>{{movie_data['title']}}</h2>
+    <ul>
+        <li><h2>{{movie_data['tagline']}}</h2></li>
+        <li><h2>{{movie_data['genres']}}</h2></li>
+    </ul>
+    <img src="{{ movie_data['image_path'] }}">
+    <p>
+        <a href="https://en.wikipedia.org/wiki/Inception">Click here to see Wikipedia page! </a>
+        <!-- <h2>{{wiki_link['links']}}</h2> -->
+    </p>
+</body>
+
+</html>
