@@ -1,4 +1,5 @@
 import os
+import json
 from flask import request
 
 import requests
@@ -12,7 +13,7 @@ Wiki_URL = 'https://en.wikipedia.org/w/api.php'
 
 def get_movie_data(id_number):
     """ Returns a list of headlines about a given topic """
-    NEW_URL = BASE_URL + str(id_number) + '?' + api_key
+    NEW_URL = BASE_URL + str(id_number) + '?'
     params = {
         'api_key': os.getenv('TMDB_KEY'),
     }
@@ -33,20 +34,15 @@ def get_movie_data(id_number):
 
 def get_movie_link(title):
     PARAMS = {
-    "action": "query",
-    "format": "json",
-    "titles": "Inception",
-    "prop": "links",
-    "pllimit" : "1"
+    "action": "opensearch",
+    "search": title,
+    "namespace" : 0,
+    "limit": 1,
+    "format": 'json'
     }
     response = requests.get(url=Wiki_URL, params=PARAMS)
     wiki_data = response.json()
 
-    PAGES = wiki_data["query"]["pages"]
-
-    for k, v in PAGES.items():
-       print (v["links"])
-
-    return{
-        'links': v["links"]
-    }
+    # link = wiki_data["query"]["general"]["base"]
+    return wiki_data
+    
