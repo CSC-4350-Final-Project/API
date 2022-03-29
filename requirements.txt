@@ -1,0 +1,9 @@
+Flask
+requests
+python-dotenv
+Flask-SQLAlchemy
+Flask-Login
+psycopg2-binary
+flask-cors
+flask-jwt-extended
+pylint
