@@ -1,11 +1,13 @@
 # pylint: disable=import-error
+# pylint: disable=unused-import
+import unittest
 import os
 import flask
 from flask import Flask, render_template, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, current_user, login_user, logout_user
 from dotenv import find_dotenv, load_dotenv
-from models import db, User, login
+from .models import db, User, login
 
 load_dotenv(find_dotenv())
 app = flask.Flask(__name__)
