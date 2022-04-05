@@ -1,0 +1,25 @@
+<!doctype html>
+<html>
+
+<head>
+    <title>Event App</title>
+
+</head>
+
+<body>
+    <h1>App overview</h1>
+    <h2>This app allows you to find and share events with your friends conveniently.</h2>
+    <h3><a href="{{url_for('login')}}">Login Here</a></h3>
+    <h3><a href="{{url_for('register') }}">Register Here</a></h3>
+
+    <!-- Display flash messages -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    {% for msg in messages %}
+    <p>{{ msg }}</p>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+</body>
+
+</html>
