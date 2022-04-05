@@ -9,6 +9,7 @@ from flask_login import LoginManager
 db = SQLAlchemy()
 login = LoginManager()
 
+
 # Models
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)

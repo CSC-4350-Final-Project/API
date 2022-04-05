@@ -1,4 +1,4 @@
-"""Final Project"""
+# pylint: disable=import-error
 import os
 import flask
 from flask import Flask, render_template, redirect, url_for, flash
@@ -10,9 +10,12 @@ from models import db, User, login
 load_dotenv(find_dotenv())
 app = flask.Flask(__name__)
 
+db = SQLAlchemy(app, session_options={"autocommit": True})
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+app.config["SQLALCHEMY_POOL_SIZE"] = 100
+
 login.init_app(app)
 login.login_view = "login"
 
