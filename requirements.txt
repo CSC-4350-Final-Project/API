@@ -7,5 +7,4 @@ psycopg2-binary
 flask-cors
 flask-jwt-extended
 pylint
-blinker==1.4
 
