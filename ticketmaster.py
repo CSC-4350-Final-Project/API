@@ -14,7 +14,7 @@ def get_event_data(postalCode):
     """ Returns a list of headlines about a given topic """
     params = {
         'apikey': os.getenv('ticketmaster_key'),
-        'postalCode' : int(postalCode),
+        'postalCode' : postalCode,
     }
     
     response = requests.get(BASE_URL, params=params)

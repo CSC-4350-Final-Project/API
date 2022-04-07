@@ -11,7 +11,7 @@ app = Flask(__name__)
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 
-@app.route('/search', methods =["GET","POST"])
+@app.route('/', methods =["GET","POST"])
 def index():
     """ Returns root endpoint HTML """
     if flask.request.method == 'GET':
