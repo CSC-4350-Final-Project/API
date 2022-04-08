@@ -1,0 +1,20 @@
+<html>
+
+<head>
+	<link rel="stylesheet" href={{ url_for('static', filename='style.css' ) }} />
+</head>
+
+<body>
+    <header><h1>Event HomePage</h1></header>
+    {% if name|length!=0 %}
+    {% for i in range(20) %}
+    <div class ="ev">
+        <p>Event Name:{{name[i]}}</p>
+        <p>Event Date: {{date[i]}}</p>
+        <a href="{{url[i]}}">Click to see event! </a>
+    </div>
+    {% endfor %}
+    {% endif %}
+</body>
+
+</html>
