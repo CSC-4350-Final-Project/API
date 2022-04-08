@@ -6,6 +6,7 @@ import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
 from werkzeug.security import check_password_hash
+from flask_cors import CORS
 from flask_jwt_extended import (
     create_access_token,
     JWTManager,
