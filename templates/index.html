@@ -24,7 +24,8 @@
             <p>Event date : {{ date[i] }}</p>
             <p>Event time : {{ time[i] }}</p>
             <p>Event id : {{ id[i] }}</p>
-            <a href="{{url[i]}}">Click here to see event detail page! </a>
+            <!-- <a href="{{url[i]}}">Click here to see event detail page! </a> -->
+            <a href="{{url_for('event_detail', id = id[i])}}">Click here to see event detail page! </a>
         </div>
         {% endfor %}
         {% endif %}

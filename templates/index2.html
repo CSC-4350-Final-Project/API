@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- <link rel="stylesheet" href={{ url_for( 'static', filename='style.css' ) }} />
+    <form method ="POST" ACTION ="/">
+        <input type="text" placeholder="{{id}}" name="id">
+        <input type="submit" value="search" name='search for event!'>
+    </form> -->
+
+
+    <h1>Event detail for event {{name}}</h1>
+</head>
+
+<body>
+    {% if name|length!=0 %}
+        <div class='item'>
+            <p><b>Event name : {{name }}</b></p>
+            <p>Event type : {{ type }}</p>
+            <p>Event date : {{ date }}</p>
+            <p>Event time : {{ time }}</p>
+            <p>Event address : {{ place }}</p>
+            <!-- <a href="{{url}}">Click here to buy the ticket! </a>
+            <img src="{{image}}" alt="Italian Trulli"> -->
+            <a href="{{url}}">
+                <img src="{{image}}" alt="HTML tutorial">
+            </a>
+        </div>
+        {% endif %}
+
+
+ 
+</body>
+
+</html>
