@@ -14,9 +14,10 @@ from flask_jwt_extended import (
 )
 from models import db, User
 from tm import get_event_data
-
+from events import get_event_list, get_event_detail
 
 load_dotenv(find_dotenv())
+
 app = flask.Flask(__name__)
 CORS(app)
 
@@ -113,8 +114,32 @@ def profile():
 
 
 # routes go here
-@app.route("/homepage")
+@app.route("/search", methods=["GET", "POST"])
 def index():
+    """Returns root endpoint HTML"""
+    if flask.request.method == "GET":
+        postal_code = "30303"
+        keyword = ""
+    else:
+        postal_code = flask.request.get_json()["postal_code"]
+        keyword = flask.request.get_json()["keyword"]
+
+    event_data = get_event_list(postal_code, keyword)
+
+    return flask.jsonify(event_data)
+
+
+@app.route("/event_detail/<string:id>", methods=["GET"])
+def event_detail(event_id):
+    """Get event detail"""
+
+    event_data = get_event_detail(event_id)
+
+    return flask.jsonify(event_data)
+
+
+@app.route("/homepage")
+def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
