@@ -5,6 +5,8 @@ from flask_cors import CORS
 from dotenv import find_dotenv, load_dotenv
 from models import db
 from events import get_event_list, get_event_detail
+from tm import get_event_data
+
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -40,6 +42,12 @@ def event_detail(event_id):
     event_data = get_event_detail(event_id)
 
     return flask.jsonify(event_data)
+
+@app.route("/homepage")
+def index():
+    """This method gets us data for upcoming events from Ticketmaster API"""
+    data = get_event_data()
+    return flask.jsonify(data)
 
 
 if __name__ == "__main__":
