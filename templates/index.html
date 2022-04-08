@@ -8,6 +8,11 @@
         <input type="submit" value="search" name='search for event!'>
     </form>
 
+    <!-- <form method ="POST" ACTION ="/">
+        <input type="text" placeholder="{{id}}" name="id">
+        <input type="submit" value="search" name='search for event detail!'>
+    </form> -->
+
     <h1>Event list for zipcode {{postalCode}}</h1>
 </head>
 
@@ -15,14 +20,15 @@
     {% if name|length!=0 %}
     {% for i in range(10) %}
         <div class='item'>
-            <p><b>{{name[i] }}</b></p>
-            <p>{{ date[i] }}</p>
-            <p>{{ time[i] }}</p>
-            <p>{{ url[i] }}</p>
-            <p>{{ id[i] }}</p>
+            <p><b>Event name : {{name[i] }}</b></p>
+            <p>Event date : {{ date[i] }}</p>
+            <p>Event time : {{ time[i] }}</p>
+            <p>Event id : {{ id[i] }}</p>
+            <a href="{{url[i]}}">Click here to see event detail page! </a>
         </div>
         {% endfor %}
         {% endif %}
+
 
  
 </body>
