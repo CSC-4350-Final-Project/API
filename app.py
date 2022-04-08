@@ -2,11 +2,17 @@
 """Main app"""
 import os
 import flask
+from datetime import timedelta
 from flask import request, jsonify
-from flask_login import login_required, current_user, login_user, logout_user
 from dotenv import find_dotenv, load_dotenv
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User, loggingIn
+from models import db, User
+from flask_jwt_extended import (
+    create_access_token,
+    JWTManager,
+    get_jwt_identity,
+    verify_jwt_in_request,
+)
 
 load_dotenv(find_dotenv())
 app = flask.Flask(__name__)
@@ -15,9 +21,9 @@ app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_POOL_SIZE"] = 100
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
-loggingIn.init_app(app)
-loggingIn.login_view = "login"
+jwt = JWTManager(app)
 
 db.init_app(app)
 with app.app_context():
@@ -29,20 +35,14 @@ with app.app_context():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     """If user is already registered, take them to main page"""
-    # if current_user.is_authenticated:
-    #     user_infor = {
-    #         "id": current_user.id,
-    #         "email": current_user.email,
-    #         "username": current_user.username,
-    #     }
-    #     return jsonify(user_infor)
-
     if request.method == "POST":
         email = request.get_json()["email"]
+        password = request.get_json()["password"]
+
         user = User.query.filter_by(email=email).first()
-        if user is not None and check_password_hash(
-            request.get_json()["password"], user.password
-        ):
+        print(user.password_hash, password)
+
+        if user is not None and check_password_hash(user.password_hash, password):
             return jsonify(
                 {
                     "error": False,
@@ -50,19 +50,11 @@ def login():
                     "id": user.id,
                     "email": user.email,
                     "username": user.username,
+                    "token": create_access_token(identity=user.id),
                 }
             )
-        if user is None:
-            return jsonify(
-                {"error": True, "message": "Not registered. Please register."}
-            )
-    return jsonify(
-        {
-            "error": False,
-            "message": "Please login with your registered credentials.",
-            "page": "You are at Login page",
-        }
-    )
+        else:
+            return jsonify({"error": True, "message": "Invalid username or password."})
 
 
 # Logout
@@ -83,19 +75,10 @@ def logout():
 @app.route("/register", methods=["POST", "GET"])
 def register():
     """Register the email to the database"""
-
-    if current_user.is_authenticated:
-        user_info = {
-            "id": current_user.id,
-            "email": current_user.email,
-            "username": current_user.username,
-        }
-        return jsonify(user_info)
-
     if request.method == "POST":
-        email = request.form["email"]
-        username = request.form["username"]
-        password = request.form["password"]
+        email = request.get_json()["email"]
+        username = request.get_json()["username"]
+        password = request.get_json()["password"]
 
         if User.query.filter_by(email=email).first():
             return jsonify(
@@ -109,6 +92,7 @@ def register():
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
+
             return jsonify(
                 {
                     "error": False,
@@ -125,31 +109,15 @@ def register():
     )
 
 
-# Main
-@app.route("/main")
-@login_required
-def main():
-    """App's main page"""
-    result = {
-        "error": False,
-        "message": "You have accessed to Main page",
-        "email": current_user.email,
-        "username": current_user.username,
-        "page": "You are in Main page",
-    }
-    return result
-
-
 # Profile
 @app.route("/profile")
-@login_required
 def profile():
     """Profile page with current user information"""
+    verify_jwt_in_request(optional=False)
+    user_id = get_jwt_identity()
 
     my_info = {
-        "my_id": current_user.id,
-        "my_email": current_user.email,
-        "my_username": current_user.username,
+        "user_id":user_id,
         "error": False,
         "message": "You are in Profile page",
     }
