@@ -7,8 +7,9 @@ load_dotenv(find_dotenv())
 # pyright: reportMissingImports=false
 # pyright: reportMissingModuleSource=false
 
-"""URL for data."""
+
 def get_event_data():
+    """URL for data."""
     response = requests.get(
         f"https://app.ticketmaster.com/discovery/v2/events.json?stateCode=GA",
         params={
