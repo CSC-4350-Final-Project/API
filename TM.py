@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 import os
 import requests
-import json
 from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 # pyright: reportMissingImports=false
