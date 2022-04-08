@@ -1,6 +1,5 @@
 import flask
-import requests
-import os
+
 # pyright: reportMissingImports=false
 # pyright: reportMissingModuleSource=false
 from TM import get_event_data
