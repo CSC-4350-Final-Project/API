@@ -12,7 +12,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT']=0
 @app.route("/")
 def index():
     data= get_event_data()
-    return flask.jsonify(
+    return flask.render_template(
         "Homepage.html",
         name=data['name'],
         date=data['date'],
