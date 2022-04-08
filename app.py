@@ -4,7 +4,9 @@ import flask
 from flask_cors import CORS
 from dotenv import find_dotenv, load_dotenv
 from models import db
+from events import get_event_list, get_event_detail
 from tm import get_event_data
+
 
 app = flask.Flask(__name__)
 CORS(app)
@@ -18,8 +20,31 @@ with app.app_context():
     db.create_all()
 
 # routes go here
-@app.route("/homepage")
+@app.route("/search", methods=["GET", "POST"])
 def index():
+    """Returns root endpoint HTML"""
+    if flask.request.method == "GET":
+        postal_code = "30303"
+        keyword = ""
+    else:
+        postal_code = flask.request.get_json()["postal_code"]
+        keyword = flask.request.get_json()["keyword"]
+
+    event_data = get_event_list(postal_code, keyword)
+
+    return flask.jsonify(event_data)
+
+
+@app.route("/event_detail/<string:id>", methods=["GET"])
+def event_detail(event_id):
+    """Get event detail"""
+
+    event_data = get_event_detail(event_id)
+
+    return flask.jsonify(event_data)
+
+@app.route("/homepage")
+def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
