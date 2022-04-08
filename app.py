@@ -4,7 +4,7 @@ import flask
 from flask_cors import CORS
 from dotenv import find_dotenv, load_dotenv
 from models import db
-from TM import get_event_data
+from tm import get_event_data
 
 app = flask.Flask(__name__)
 CORS(app)
