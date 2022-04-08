@@ -22,4 +22,3 @@ class User(db.Model):
     def check_password(self, password):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
-

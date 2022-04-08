@@ -1,21 +1,24 @@
 # pylint: disable=no-member
 """Main app"""
 import os
-import flask
 from datetime import timedelta
+import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
-from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, User
+from werkzeug.security import check_password_hash
 from flask_jwt_extended import (
     create_access_token,
     JWTManager,
     get_jwt_identity,
     verify_jwt_in_request,
 )
+from models import db, User
+from tm import get_event_data
+
 
 load_dotenv(find_dotenv())
 app = flask.Flask(__name__)
+CORS(app)
 
 app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
@@ -35,26 +38,24 @@ with app.app_context():
 @app.route("/login", methods=["POST", "GET"])
 def login():
     """If user is already registered, take them to main page"""
-    if request.method == "POST":
-        email = request.get_json()["email"]
-        password = request.get_json()["password"]
+    email = request.get_json()["email"]
+    password = request.get_json()["password"]
 
-        user = User.query.filter_by(email=email).first()
-        print(user.password_hash, password)
+    user = User.query.filter_by(email=email).first()
 
-        if user is not None and check_password_hash(user.password_hash, password):
-            return jsonify(
-                {
-                    "error": False,
-                    "message": "Login Successfully",
-                    "id": user.id,
-                    "email": user.email,
-                    "username": user.username,
-                    "token": create_access_token(identity=user.id),
-                }
-            )
-        else:
-            return jsonify({"error": True, "message": "Invalid username or password."})
+    if user is not None and check_password_hash(user.password_hash, password):
+        return jsonify(
+            {
+                "error": False,
+                "message": "Login Successfully",
+                "id": user.id,
+                "email": user.email,
+                "username": user.username,
+                "token": create_access_token(identity=user.id),
+            }
+        )
+
+    return jsonify({"error": True, "message": "Invalid username or password."})
 
 
 # Register
@@ -73,18 +74,19 @@ def register():
                     "message": "Email taken. Try another",
                 }
             )
-        else:
-            user = User(email=email, username=username)
-            user.set_password(password)
-            db.session.add(user)
-            db.session.commit()
 
-            return jsonify(
-                {
-                    "error": False,
-                    "message": "Registered successfully. Please login with the recently registered credentials",
-                }
-            )
+        user = User(email=email, username=username)
+        user.set_password(password)
+        db.session.add(user)
+        db.session.commit()
+
+        return jsonify(
+            {
+                "error": False,
+                "message": "Registered successfully. Please login with the recently\
+                registered credentials",
+            }
+        )
 
     return jsonify(
         {
@@ -108,6 +110,14 @@ def profile():
         "message": "You are in Profile page",
     }
     return jsonify(my_info)
+
+
+# routes go here
+@app.route("/homepage")
+def index():
+    """This method gets us data for upcoming events from Ticketmaster API"""
+    data = get_event_data()
+    return flask.jsonify(data)
 
 
 if __name__ == "__main__":
