@@ -57,20 +57,6 @@ def login():
             return jsonify({"error": True, "message": "Invalid username or password."})
 
 
-# Logout
-@app.route("/logout", methods=["POST", "GET"])
-def logout():
-    """Logout the user"""
-    logout_user()
-    return jsonify(
-        {
-            "message": "You have been logged out",
-            "error": False,
-            "page": "You are at Logout page",
-        }
-    )
-
-
 # Register
 @app.route("/register", methods=["POST", "GET"])
 def register():
@@ -117,7 +103,7 @@ def profile():
     user_id = get_jwt_identity()
 
     my_info = {
-        "user_id":user_id,
+        "user_id": user_id,
         "error": False,
         "message": "You are in Profile page",
     }
