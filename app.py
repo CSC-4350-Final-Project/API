@@ -44,7 +44,7 @@ def event_detail(event_id):
     return flask.jsonify(event_data)
 
 @app.route("/homepage")
-def index():
+def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
