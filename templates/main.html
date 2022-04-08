@@ -12,7 +12,10 @@
     <h2>Find and Share your events with ease!</h2>
     <h3>Logged in as {{ current_user.email }}</h3>
     <h3>Your full name is {{ current_user.username }}</h3>
+
+    <a href="profile.html">Profile</a><br>
     <a href="{{ url_for('logout')}}">Logout Here</a>
+
 </body>
 
 </html>

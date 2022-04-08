@@ -2,9 +2,10 @@
 """Main app"""
 import os
 import flask
-from flask import render_template, redirect, flash, request
+from flask import request, jsonify
 from flask_login import login_required, current_user, login_user, logout_user
 from dotenv import find_dotenv, load_dotenv
+from werkzeug.security import generate_password_hash, check_password_hash
 from models import db, User, loggingIn
 
 load_dotenv(find_dotenv())
@@ -24,29 +25,44 @@ with app.app_context():
 
 # ROUTES
 
-# Landing
-@app.route("/")
-def landing():
-    """This page contains an app overview and Login/Register buttons"""
-    return render_template("landing.html")
-
-
 # Login
 @app.route("/login", methods=["POST", "GET"])
 def login():
     """If user is already registered, take them to main page"""
-    if current_user.is_authenticated:
-        return redirect("/main")
+    # if current_user.is_authenticated:
+    #     user_infor = {
+    #         "id": current_user.id,
+    #         "email": current_user.email,
+    #         "username": current_user.username,
+    #     }
+    #     return jsonify(user_infor)
 
     if request.method == "POST":
-        email = request.form["email"]
+        email = request.get_json()["email"]
         user = User.query.filter_by(email=email).first()
-        if user is not None and user.check_password(request.form["password"]):
-            login_user(user)
-            return redirect("/main")
+        if user is not None and check_password_hash(
+            request.get_json()["password"], user.password
+        ):
+            return jsonify(
+                {
+                    "error": False,
+                    "message": "Login Successfully",
+                    "id": user.id,
+                    "email": user.email,
+                    "username": user.username,
+                }
+            )
         if user is None:
-            flash("Not registered. Please register below.")
-    return render_template("login.html")
+            return jsonify(
+                {"error": True, "message": "Not registered. Please register."}
+            )
+    return jsonify(
+        {
+            "error": False,
+            "message": "Please login with your registered credentials.",
+            "page": "You are at Login page",
+        }
+    )
 
 
 # Logout
@@ -54,15 +70,27 @@ def login():
 def logout():
     """Logout the user"""
     logout_user()
-    return redirect("/")
+    return jsonify(
+        {
+            "message": "You have been logged out",
+            "error": False,
+            "page": "You are at Logout page",
+        }
+    )
 
 
 # Register
 @app.route("/register", methods=["POST", "GET"])
 def register():
     """Register the email to the database"""
+
     if current_user.is_authenticated:
-        return redirect("/main")
+        user_info = {
+            "id": current_user.id,
+            "email": current_user.email,
+            "username": current_user.username,
+        }
+        return jsonify(user_info)
 
     if request.method == "POST":
         email = request.form["email"]
@@ -70,15 +98,31 @@ def register():
         password = request.form["password"]
 
         if User.query.filter_by(email=email).first():
-            flash("Email used. Try another.")
+            return jsonify(
+                {
+                    "error": True,
+                    "message": "Email taken. Try another",
+                }
+            )
         else:
             user = User(email=email, username=username)
             user.set_password(password)
             db.session.add(user)
             db.session.commit()
-            return redirect("/login")
+            return jsonify(
+                {
+                    "error": False,
+                    "message": "Registered successfully. Please login with the recently registered credentials",
+                }
+            )
 
-    return render_template("register.html")
+    return jsonify(
+        {
+            "error": True,
+            "message": "Wrong credentials",
+            "page": "You are at Register page",
+        }
+    )
 
 
 # Main
@@ -86,7 +130,30 @@ def register():
 @login_required
 def main():
     """App's main page"""
-    return render_template("main.html")
+    result = {
+        "error": False,
+        "message": "You have accessed to Main page",
+        "email": current_user.email,
+        "username": current_user.username,
+        "page": "You are in Main page",
+    }
+    return result
+
+
+# Profile
+@app.route("/profile")
+@login_required
+def profile():
+    """Profile page with current user information"""
+
+    my_info = {
+        "my_id": current_user.id,
+        "my_email": current_user.email,
+        "my_username": current_user.username,
+        "error": False,
+        "message": "You are in Profile page",
+    }
+    return jsonify(my_info)
 
 
 if __name__ == "__main__":
