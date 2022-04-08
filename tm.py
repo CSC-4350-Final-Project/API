@@ -11,7 +11,7 @@ load_dotenv(find_dotenv())
 def get_event_data():
     """URL for data."""
     response = requests.get(
-        f"https://app.ticketmaster.com/discovery/v2/events.json?stateCode=GA",
+        "https://app.ticketmaster.com/discovery/v2/events.json?stateCode=GA",
         params={
             "apikey": os.getenv("TM_API"),
         },
