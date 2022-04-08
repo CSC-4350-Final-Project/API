@@ -21,8 +21,9 @@ with app.app_context():
 @app.route("/homepage")
 def index():
     """This method gets us data for upcoming events from Ticketmaster API"""
-    data= get_event_data()
+    data = get_event_data()
     return flask.jsonify(data)
+
 
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT", "4000"))

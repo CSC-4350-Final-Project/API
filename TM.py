@@ -1,9 +1,11 @@
 import os
 import requests
 from dotenv import load_dotenv, find_dotenv
+
 load_dotenv(find_dotenv())
 # pyright: reportMissingImports=false
 # pyright: reportMissingModuleSource=false
+
 
 def get_event_data():
     response = requests.get(
