@@ -130,7 +130,7 @@ def index():
     return flask.jsonify(event_data)
 
 
-@app.route("/event_detail/<string:id>", methods=["GET"])
+@app.route("/event_detail/<string:event_id>", methods=["GET"])
 def event_detail(event_id):
     """Get event detail"""
 
