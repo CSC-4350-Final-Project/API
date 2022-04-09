@@ -28,5 +28,4 @@ jobs:
           pylint $(git ls-files '*.py')
       - name: Test with unittest
         run: |
-          echo $DATABASE_URL
-          cd tests && python test.py
+          python -m unittest discover -s tests
