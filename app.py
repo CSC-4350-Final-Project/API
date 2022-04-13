@@ -104,14 +104,18 @@ def register():
 def profile():
     """Profile page with current user information"""
     verify_jwt_in_request(optional=False)
+
+    email = request.get_json()["email"]
+    user = User.query.filter_by(email=email).first()
     user_id = get_jwt_identity()
 
-    my_info = {
-        "user_id": user_id,
+    user_info = {
         "error": False,
-        "message": "You are in Profile page",
+        "user_id": user_id,
+        "user_email": user.email,
+        "user_username": user.username,
     }
-    return jsonify(my_info)
+    return jsonify(user_info)
 
 
 # routes go here
