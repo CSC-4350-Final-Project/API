@@ -29,3 +29,8 @@ jobs:
       - name: Test with unittest
         run: |
           python -m unittest discover -s tests
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      
+      - name: Test inline env vars for python
+        run: DATABASE_URL=${{ secrets.DATABASE_URL }}  python -c 'import os;print(os.environ)'
