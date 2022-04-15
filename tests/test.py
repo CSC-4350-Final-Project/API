@@ -3,21 +3,7 @@ unit test
 """
 import unittest
 import json
-import os
-from dotenv import find_dotenv, load_dotenv
 import app as myapi
-
-load_dotenv(find_dotenv())
-
-print(os.getenv("DATABASE_URL"))
-# import sys
-
-# sys.path.append("../")
-# pylint: disable=wrong-import-position
-# We use the above pylint disable because otherwise the unit test will not run
-
-
-# sys.path.append("../")
 
 
 class BasicTestCase(unittest.TestCase):
@@ -26,6 +12,8 @@ class BasicTestCase(unittest.TestCase):
     def setUp(self):
         myapi.testing = True
         self.app = myapi.app.test_client()
+        self.app_context = myapi.app.app_context()
+        self.app_context.push()
 
     def test_search(self):
         "test search"
@@ -45,6 +33,11 @@ class BasicTestCase(unittest.TestCase):
         data = json.loads(response.get_data())
         event_id = data["id"]
         self.assertEqual(event_id, "vvG1zZpmTbud8h")
+
+    def test_get_comment(self):
+        "Test getting a comment"
+        response = self.app.get("/event/vvG1zZpUJ2Fxb3/comment", content_type="json")
+        self.assertEqual(response.status_code, 200)
 
 
 if __name__ == "__main__":

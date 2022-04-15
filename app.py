@@ -156,7 +156,7 @@ def post_comment(event_id):
         verify_jwt_in_request()
         user_id = get_jwt_identity()
         text = flask.request.get_json()
-        print(event_id)
+
         new_comment = Comment(user_id=user_id, text=text, event_id=event_id)
 
         db.session.add(new_comment)
@@ -175,7 +175,6 @@ def post_comment(event_id):
     output = []
 
     for comment, user in comments:
-        print(comment, user)
         output.append(
             {
                 "username": user.username,
