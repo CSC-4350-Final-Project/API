@@ -3,8 +3,8 @@ unit test
 """
 import unittest
 import json
-from dotenv import find_dotenv, load_dotenv
 import os
+from dotenv import find_dotenv, load_dotenv
 import app as myapi
 load_dotenv(find_dotenv())
 
