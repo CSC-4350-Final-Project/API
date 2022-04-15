@@ -1,5 +1,6 @@
 """Schemas for our database"""
 # pylint: disable=no-member
+# pylint: disable=too-few-public-methods
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -22,3 +23,14 @@ class User(db.Model):
     def check_password(self, password):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
+
+
+class Comment(db.Model):
+    """Comments table"""
+
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    event_id = db.Column(db.Text)
+    text = db.Column(db.Text)
+    date_posted = db.Column(db.DateTime, default=db.func.now())

@@ -9,7 +9,6 @@ BASE_URL = "https://app.ticketmaster.com/discovery/v2/events?"
 BASE_URL2 = "https://app.ticketmaster.com/discovery/v2/events/"
 
 
-
 def get_event_list(postal_code, keyword):
     """Returns a list of headlines about a given topic"""
     params = {

@@ -6,13 +6,14 @@ import json
 import os
 from dotenv import find_dotenv, load_dotenv
 import app as myapi
+
 load_dotenv(find_dotenv())
 
 print(os.getenv("DATABASE_URL"))
 # import sys
 
 # sys.path.append("../")
-#pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position
 # We use the above pylint disable because otherwise the unit test will not run
 
 
@@ -21,6 +22,7 @@ print(os.getenv("DATABASE_URL"))
 
 class BasicTestCase(unittest.TestCase):
     "class"
+
     def setUp(self):
         myapi.testing = True
         self.app = myapi.app.test_client()
