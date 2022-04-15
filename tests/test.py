@@ -1,7 +1,6 @@
 """
 unit test
 """
-import os
 import unittest
 import json
 import app as myapi
