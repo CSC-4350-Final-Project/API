@@ -3,7 +3,12 @@ unit test
 """
 import unittest
 import json
+from dotenv import find_dotenv, load_dotenv
+import os
 import app as myapi
+load_dotenv(find_dotenv())
+
+print(os.getenv("DATABASE_URL"))
 # import sys
 
 # sys.path.append("../")
