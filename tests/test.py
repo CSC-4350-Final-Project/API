@@ -17,6 +17,7 @@ import app as myapi
 class BasicTestCase(unittest.TestCase):
     "class"
     def setUp(self):
+        myapi.testing = True
         self.app = myapi.app.test_client()
 
     def test_search(self):
