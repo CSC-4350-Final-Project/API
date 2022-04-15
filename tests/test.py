@@ -12,7 +12,6 @@ class BasicTestCase(unittest.TestCase):
 
     def setUp(self):
         myapi.testing = True
-        print(os.getenv("DATABASE_URL"))
         self.app = myapi.app.test_client()
         self.app_context = myapi.app.app_context()
         self.app_context.push()
