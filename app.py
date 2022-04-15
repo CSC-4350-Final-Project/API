@@ -100,21 +100,20 @@ def register():
 
 
 # Profile
-@app.route("/profile")
+@app.route("/profile", methods=["GET"])
 def profile():
     """Profile page with current user information"""
     verify_jwt_in_request(optional=False)
 
-    email = request.get_json()["email"]
-    user = User.query.filter_by(email=email).first()
     user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
 
-    user_info = {
-        "error": False,
-        "user_id": user_id,
-        "user_email": user.email,
-        "user_username": user.username,
-    }
+    if request.method == "GET":
+        user_info = {
+            "user_id": user.id,
+            "email": user.email,
+            "username": user.username,
+        }
     return jsonify(user_info)
 
 
