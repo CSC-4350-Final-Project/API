@@ -11,11 +11,6 @@ class BasicTestCase(unittest.TestCase):
 
     def setUp(self):
         myapi.testing = True
-        app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-        app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-        app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-        app.config["SQLALCHEMY_POOL_SIZE"] = 100
-        app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
         self.app = myapi.app.test_client()
         self.app_context = myapi.app.app_context()
         self.app_context.push()
