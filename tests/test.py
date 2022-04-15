@@ -1,17 +1,10 @@
 """
 unit test
 """
-import json
 import unittest
-import sys
-
-sys.path.append("../")
-#pylint: disable=wrong-import-position
-# We use the above pylint disable because otherwise the unit test will not run
 from app import app
-
-
-sys.path.append("../")
+import json
+import sys
 
 
 class BasicTestCase(unittest.TestCase):
