@@ -1,7 +1,6 @@
 # pylint: disable=no-member
 """Main app"""
 import os
-from datetime import timedelta
 import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
@@ -20,13 +19,8 @@ from events import get_event_list, get_event_detail
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
+app.config.from_object("config.Config")
 CORS(app)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_POOL_SIZE"] = 100
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 jwt = JWTManager(app)
 
