@@ -26,9 +26,6 @@ jobs:
       - name: Analyzing the code with pylint
         run: |
           pylint $(git ls-files '*.py')
-      - name: Export environment variable
-        run: |
-          export DATABASE_URL=${{secrets.DATABASE_URL}}
       - name: Test with unittest
         run: |
           python -m unittest discover -s tests
