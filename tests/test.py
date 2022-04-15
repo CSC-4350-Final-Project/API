@@ -3,7 +3,7 @@ unit test
 """
 import unittest
 import json
-from app import app
+import app as myapi
 # import sys
 
 # sys.path.append("../")
@@ -16,11 +16,13 @@ from app import app
 
 class BasicTestCase(unittest.TestCase):
     "class"
+    def setUp(self):
+        self.app = myapi.app.test_client()
 
     def test_search(self):
         "test search"
-        tester = app.test_client(self)
-        response = tester.get("/search", content_type="json")
+        # tester = app.test_client(self)
+        response = self.app.get("/search", content_type="json")
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
         postal_code = data["_embedded"]["events"][0]["_embedded"]["venues"][0][
@@ -30,8 +32,7 @@ class BasicTestCase(unittest.TestCase):
 
     def test_event_detail(self):
         "test detail"
-        tester = app.test_client(self)
-        response = tester.get("/event_detail/vvG1zZpmTbud8h", content_type="json")
+        response = self.app.get("/event_detail/vvG1zZpmTbud8h", content_type="json")
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
         event_id = data["id"]
