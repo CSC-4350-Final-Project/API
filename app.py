@@ -1,7 +1,6 @@
 # pylint: disable=no-member
 """Main app"""
 import os
-from datetime import timedelta
 import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
@@ -13,20 +12,15 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import db, User
+from models import db, User, Comment
 from tm import get_event_data
 from events import get_event_list, get_event_detail
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
+app.config.from_object("config.Config")
 CORS(app)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_POOL_SIZE"] = 100
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 jwt = JWTManager(app)
 
@@ -147,6 +141,43 @@ def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
+
+
+@app.route("/event/<string:event_id>/comment", methods=["GET", "POST"])
+def post_comment(event_id):
+    """Post and get comments for a specific event"""
+    if flask.request.method == "POST":
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        text = flask.request.get_json()
+
+        new_comment = Comment(user_id=user_id, text=text, event_id=event_id)
+
+        db.session.add(new_comment)
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    comments = (
+        db.session.query(Comment, User)
+        .filter(User.id == Comment.user_id)
+        .filter_by(event_id=event_id)
+        .order_by(Comment.id.asc())
+        .all()
+    )
+
+    output = []
+
+    for comment, user in comments:
+        output.append(
+            {
+                "username": user.username,
+                "user_id": user.id,
+                "text": comment.text,
+                "date_posted": comment.date_posted,
+            }
+        )
+    return flask.jsonify(output)
 
 
 if __name__ == "__main__":
