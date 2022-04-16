@@ -57,7 +57,9 @@ def login():
             }
         )
 
-    return jsonify({"error": True, "message": "Invalid username or password."})
+    return jsonify(
+        {"error": True, "message": "Invalid username or password. Please try again."}
+    )
 
 
 # Register
@@ -117,7 +119,7 @@ def profile():
     return jsonify(user_info)
 
 
-# routes go here
+# Search
 @app.route("/search", methods=["GET", "POST"])
 def index():
     """Returns root endpoint HTML"""
@@ -147,6 +149,11 @@ def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
+
+
+@app.route("/favorites", methods=["POST", "GET"])
+def favorites():
+    pass
 
 
 if __name__ == "__main__":
