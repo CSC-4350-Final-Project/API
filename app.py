@@ -1,5 +1,6 @@
 # pylint: disable=no-member
 """Main app"""
+import json
 import os
 from datetime import timedelta
 import flask
@@ -13,7 +14,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import db, User
+from models import db, User, Favorites
 from tm import get_event_data
 from events import get_event_list, get_event_detail
 
@@ -135,11 +136,20 @@ def index():
     return flask.jsonify(event_data)
 
 
-@app.route("/event_detail/<string:id>", methods=["GET"])
+@app.route("/event_detail/<string:id>", methods=["POST", "GET"])
 def event_detail(event_id):
     """Get event detail"""
 
     event_data = get_event_detail(event_id)
+
+    # email = request.get_json()["email"]
+    # event = Favorites.query.filter_by(email=email).first()
+
+    # if request.method == "POST":
+    #    if not event:
+    #        my_favorite_event = Favorites(email=email, event_id=event_id)
+    #        db.session.add(my_favorite_event)
+    #        db.session.commit()
 
     return flask.jsonify(event_data)
 
@@ -153,7 +163,25 @@ def homepage():
 
 @app.route("/favorites", methods=["POST", "GET"])
 def favorites():
-    pass
+    """Returns a list of favorite events"""
+
+    email = request.get_json()["email"]
+    all_favorite_events = Favorites.query.filter_by(email=email).all()
+
+    # If GET, check if event exists by user's email, return them
+    if request.method == "GET":
+        events_exist = Favorites.query.filter_by(email=email).first()
+        if events_exist:
+            return jsonify(all_favorite_events)
+
+    # If Remove button is clicked, delete this particular event from database
+    if request.method == "POST":
+        particular_favorite = Favorites.query.filter_by(email=email).first()
+        if particular_favorite:
+            particular_favorite.delete()
+            db.session.commit()
+
+    return jsonify(all_favorite_events)
 
 
 if __name__ == "__main__":

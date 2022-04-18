@@ -22,3 +22,12 @@ class User(db.Model):
     def check_password(self, password):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
+
+
+class Favorites(db.Model):
+    """Favorites table"""
+
+    __tablename__ = "favorites"
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(80), unique=True)
+    event_id = db.Column(db.Integer)
