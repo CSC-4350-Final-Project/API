@@ -12,7 +12,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import db, User, Comment
+from models import db, User, Comment, Going
 from tm import get_event_data
 from events import get_event_list, get_event_detail
 
@@ -177,6 +177,50 @@ def post_comment(event_id):
                 "date_posted": comment.date_posted,
             }
         )
+    return flask.jsonify(output)
+
+
+@app.route("/event/<string:event_id>/going", methods=["GET", "POST"])
+def going(event_id):
+    """Post and get comments for a specific event"""
+
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+
+    if flask.request.method == "POST":
+
+        data = flask.request.get_json()
+        going_id = data["id"]
+        status = data["value"]
+        date_updated = data["dateUpdated"]
+
+        if not going_id:
+            new_status = Going(user_id=user_id, status=status, event_id=event_id)
+            db.session.add(new_status)
+        else:
+            db.session.query(Going).filter(Going.id == going_id).update(
+                {"status": status, "date_updated": date_updated}
+            )
+
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    going_status = (
+        db.session.query(Going)
+        .filter(Going.user_id == user_id)
+        .filter(Going.event_id == event_id)
+        .first()
+    )
+
+    output = {}
+
+    if going_status is None:
+        output["id"] = None
+    else:
+        output["id"] = going_status.id
+        output["status"] = going_status.status
+        output["date_updated"] = going_status.date_updated
     return flask.jsonify(output)
 
 
