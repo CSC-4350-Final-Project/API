@@ -5,6 +5,7 @@ from datetime import timedelta
 import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
+from flask_login import current_user, user_logged_in
 from werkzeug.security import check_password_hash
 from flask_cors import CORS
 from flask_jwt_extended import (
@@ -13,7 +14,7 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import db, User
+from models import Review, db, User
 from tm import get_event_data
 from events import get_event_list, get_event_detail
 
@@ -137,6 +138,30 @@ def event_detail(event_id):
     event_data = get_event_detail(event_id)
 
     return flask.jsonify(event_data)
+
+
+@app.route("/review", methods=["GET", "POST"])
+def profile():
+    if flask.request.method == "GET":
+        postal_code = "30303"
+    else:
+        data = flask.request.form
+        if "add_review" in data:
+            new_review = Review(
+                event_data["postal_code"],
+                current_user.id,
+                current_user.name,
+                event_data["comment"],
+            )
+            db.session.add(new_review)
+            db.session.commit()
+
+        postal_code = event_data["postal_code"]
+    event_data = get_event_detail(postal_code)
+
+    reviews = Review.query.filter_by(postal_code=postal_code).all()
+
+    return flask.jsonify(reviews)
 
 
 @app.route("/homepage")
