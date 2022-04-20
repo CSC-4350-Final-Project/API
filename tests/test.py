@@ -17,13 +17,10 @@ class BasicTestCase(unittest.TestCase):
 
     def test_search(self):
         "test search"
-        # tester = app.test_client(self)
         response = self.app.get("/search", content_type="json")
         self.assertEqual(response.status_code, 200)
         data = json.loads(response.get_data())
-        postal_code = data["_embedded"]["events"][0]["_embedded"]["venues"][0][
-            "postalCode"
-        ]
+        postal_code = data[0]["_embedded"]["venues"][0]["postalCode"]
         self.assertEqual(postal_code, "30303")
 
     def test_event_detail(self):

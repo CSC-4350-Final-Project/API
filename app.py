@@ -125,11 +125,10 @@ def index():
 
         event_data = get_event_list(postal_code, keyword)
 
-        output = []
         if "_embedded" in event_data:
             return flask.jsonify(event_data["_embedded"]["events"])
-        else:
-            return flask.jsonify([])
+        return flask.jsonify([])
+
     except ValueError:
         return flask.jsonify([])
 
