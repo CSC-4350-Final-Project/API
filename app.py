@@ -115,16 +115,23 @@ def profile():
 @app.route("/search", methods=["GET", "POST"])
 def index():
     """Returns root endpoint HTML"""
-    if flask.request.method == "GET":
-        postal_code = "30303"
-        keyword = ""
-    else:
-        postal_code = flask.request.get_json()["postal_code"]
-        keyword = flask.request.get_json()["keyword"]
+    try:
+        if flask.request.method == "GET":
+            postal_code = "30303"
+            keyword = ""
+        else:
+            postal_code = flask.request.get_json()["postal_code"] or "30303"
+            keyword = flask.request.get_json()["keyword"]
 
-    event_data = get_event_list(postal_code, keyword)
+        event_data = get_event_list(postal_code, keyword)
 
-    return flask.jsonify(event_data)
+        output = []
+        if "_embedded" in event_data:
+            return flask.jsonify(event_data["_embedded"]["events"])
+        else:
+            return flask.jsonify([])
+    except ValueError:
+        return flask.jsonify([])
 
 
 @app.route("/event_detail/<string:event_id>", methods=["GET"])
