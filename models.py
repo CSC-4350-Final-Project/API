@@ -38,8 +38,8 @@ class Review(db.Model):
     comment = db.Column(db.String(1000))
     rating = db.Column(db.Integer)
 
-    def __init__(self, postal_code, userid, username, comment):
-        self.postal_code = postal_code
+    def __init__(self, event_id, userid, username, comment):
+        self.event_id = event_id
         self.userid = userid
         self.username = username
         self.comment = comment

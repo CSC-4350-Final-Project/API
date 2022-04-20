@@ -143,12 +143,12 @@ def event_detail(event_id):
 @app.route("/review", methods=["GET", "POST"])
 def profile():
     if flask.request.method == "GET":
-        postal_code = "30303"
+        event_id = "vvG1zZpmTbud8h"
     else:
         data = flask.request.form
         if "add_review" in data:
             new_review = Review(
-                event_data["postal_code"],
+                event_data["event_id"],
                 current_user.id,
                 current_user.name,
                 event_data["comment"],
@@ -156,10 +156,10 @@ def profile():
             db.session.add(new_review)
             db.session.commit()
 
-        postal_code = event_data["postal_code"]
-    event_data = get_event_detail(postal_code)
+        event_id = event_data["event_id"]
+    event_data = get_event_detail(event_id)
 
-    reviews = Review.query.filter_by(postal_code=postal_code).all()
+    reviews = Review.query.filter_by(event_id=event_id).all()
 
     return flask.jsonify(reviews)
 
