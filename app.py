@@ -185,6 +185,10 @@ def post_comment(event_id):
         )
     return flask.jsonify(output)
 
+@app.route("/event/<string:event_id>/share", methods=["POST"])
+def share(event_id):
+    # Implement back-end sharing here
+    return flask.jsonify()
 
 @app.route("/event/<string:event_id>/going", methods=["GET", "POST"])
 def going(event_id):
