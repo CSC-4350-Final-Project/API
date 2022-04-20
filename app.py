@@ -34,6 +34,7 @@ jwt = JWTManager(app)
 db.init_app(app)
 with app.app_context():
     db.create_all()
+    #db.drop_all()
 
 # ROUTES
 
@@ -136,18 +137,11 @@ def index():
     return flask.jsonify(event_data)
 
 
-@app.route("/event_detail/<string:id>", methods=["POST", "GET"])
+@app.route("/event_detail/<string:event_id>", methods=["POST", "GET"])
 def event_detail(event_id):
     """Get event detail"""
-    email = request.get_json()["email"]
-    event_id = request.get_json()["event_id"]
-    event_data = get_event_detail(event_id)
-
-    if request.method == "POST":
-        new_favorite = Favorites(email=email, event_id=event_id)
-        db.session.add(new_favorite)
-        db.session.commit()
-        return jsonify({"message": "New favorite added to database"})        
+    
+    event_data = get_event_detail(event_id) 
 
     return flask.jsonify(event_data)
 
@@ -159,36 +153,39 @@ def homepage():
     return flask.jsonify(data)
 
 
-@app.route("/favorites", methods=["POST", "GET"])
-def favorites():
+@app.route("/favorites/<string:event_id>", methods=["POST", "GET"])
+def favorites(event_id):
     """Returns a list of favorite events"""
 
-    data = request.get_json()
-    email = data["email"]
-    event_id = data["event_id"]
-    
-    #if POST, delete this particular event at this index
+    verify_jwt_in_request(optional=False)
+    user_id = get_jwt_identity()
+
     if request.method == "POST":
-        this_event = Favorites.query.filter_by(event_id=event_id).first()
-        if this_event is not None:
-            this_event.delete()
+        is_favorited = Favorites.query.filter_by(event_id=event_id, user_id=user_id).first()
+        #if this event has been favorited, remove from database
+        if is_favorited:
+            Favorites.query.filter_by(event_id=event_id, user_id=user_id).delete()
             db.session.commit()
-            return jsonify({"message": "Remove completed"})
+            print(is_favorited, event_id, user_id)
+            return jsonify({})
+        #Otherwise, add as a new favorite
+        else:
+            new_favorite = Favorites(user_id=user_id, event_id=event_id)
+            db.session.add(new_favorite)
+            db.session.commit()
+            return jsonify({"message": "New favorite added to database"})  
+    
+    elif request.method == "GET":
+        events = Favorites.query.filter_by(event_id=event_id, user_id=user_id).first()
+        
+        if events:
+            return jsonify({"is_favorite": True})
+        else:
+            return jsonify({"is_favorite": False})
 
-    #otherwise, query to show favorited events for this user email
-    events = Favorites.query.filter_by(email=email).all()
-    user_email = []
-    fav_event_id = []
+    return jsonify({"message": "Successfully added"})
 
-    for i in events:
-        user_email.append(i.email)
-        fav_event_id.append(i.event_id)
-
-    fav_events = {"user_email": user_email, "fav_event_id": fav_event_id, "event_data": get_event_data() }
-
-    return jsonify(fav_events)
-
-
+    
 
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT", "4000"))

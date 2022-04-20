@@ -29,5 +29,5 @@ class Favorites(db.Model):
 
     __tablename__ = "favorites"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(80), unique=True)
-    event_id = db.Column(db.Integer)
+    user_id = db.Column(db.Integer)
+    event_id = db.Column(db.String(100))
