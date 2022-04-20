@@ -139,17 +139,15 @@ def index():
 @app.route("/event_detail/<string:id>", methods=["POST", "GET"])
 def event_detail(event_id):
     """Get event detail"""
-
+    email = request.get_json()["email"]
+    event_id = request.get_json()["event_id"]
     event_data = get_event_detail(event_id)
 
-    # email = request.get_json()["email"]
-    # event = Favorites.query.filter_by(email=email).first()
-
-    # if request.method == "POST":
-    #    if not event:
-    #        my_favorite_event = Favorites(email=email, event_id=event_id)
-    #        db.session.add(my_favorite_event)
-    #        db.session.commit()
+    if request.method == "POST":
+        new_favorite = Favorites(email=email, event_id=event_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({"message": "New favorite added to database"})        
 
     return flask.jsonify(event_data)
 
@@ -165,23 +163,31 @@ def homepage():
 def favorites():
     """Returns a list of favorite events"""
 
-    email = request.get_json()["email"]
-    all_favorite_events = Favorites.query.filter_by(email=email).all()
-
-    # If GET, check if event exists by user's email, return them
-    if request.method == "GET":
-        events_exist = Favorites.query.filter_by(email=email).first()
-        if events_exist:
-            return jsonify(all_favorite_events)
-
-    # If Remove button is clicked, delete this particular event from database
+    data = request.get_json()
+    email = data["email"]
+    event_id = data["event_id"]
+    
+    #if POST, delete this particular event at this index
     if request.method == "POST":
-        particular_favorite = Favorites.query.filter_by(email=email).first()
-        if particular_favorite:
-            particular_favorite.delete()
+        this_event = Favorites.query.filter_by(event_id=event_id).first()
+        if this_event is not None:
+            this_event.delete()
             db.session.commit()
+            return jsonify({"message": "Remove completed"})
 
-    return jsonify(all_favorite_events)
+    #otherwise, query to show favorited events for this user email
+    events = Favorites.query.filter_by(email=email).all()
+    user_email = []
+    fav_event_id = []
+
+    for i in events:
+        user_email.append(i.email)
+        fav_event_id.append(i.event_id)
+
+    fav_events = {"user_email": user_email, "fav_event_id": fav_event_id, "event_data": get_event_data() }
+
+    return jsonify(fav_events)
+
 
 
 if __name__ == "__main__":
