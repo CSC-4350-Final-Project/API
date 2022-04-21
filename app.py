@@ -4,6 +4,8 @@ import os
 from datetime import timedelta
 import flask
 from flask import request, jsonify
+from flask_mail import Mail
+from flask_mail import Message
 from dotenv import find_dotenv, load_dotenv
 from flask_login import current_user, user_logged_in
 from werkzeug.security import check_password_hash
@@ -28,6 +30,13 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 app.config["SQLALCHEMY_POOL_SIZE"] = 100
 app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
+app.config["MAIL_SERVER"] = "smtp.mailtrap.io"
+app.config["MAIL_PORT"] = 2525
+app.config["MAIL_USERNAME"] = "97e041d5e367c7"
+app.config["MAIL_PASSWORD"] = "cfaf5b99f8bafb"
+app.config["MAIL_USE_TLS"] = True
+app.config["MAIL_USE_SSL"] = False
+mail = Mail(app)
 
 jwt = JWTManager(app)
 
@@ -141,23 +150,28 @@ def event_detail(event_id):
 
 
 @app.route("/review", methods=["GET", "POST"])
-def profile():
+def review():
+    "review for event"
     if flask.request.method == "GET":
         event_id = "vvG1zZpmTbud8h"
     else:
         data = flask.request.form
-        if "add_review" in data:
-            new_review = Review(
-                event_data["event_id"],
-                current_user.id,
-                current_user.name,
-                event_data["comment"],
-            )
-            db.session.add(new_review)
-            db.session.commit()
+
+    event_data = get_event_detail(event_id)
+
+
+    if "add_review" in data:
+        new_review = Review(
+            event_data["event_id"],
+            current_user.id,
+            current_user.name,
+            event_data["comment"],
+        )
+        db.session.add(new_review)
+        db.session.commit()
 
         event_id = event_data["event_id"]
-    event_data = get_event_detail(event_id)
+    
 
     reviews = Review.query.filter_by(event_id=event_id).all()
 
@@ -169,6 +183,35 @@ def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
+
+
+@app.route("/share_event")
+def share_event():
+    "share event with email"
+    email = request.get_json()["email"]
+
+    if flask.request.method == "GET":
+        event_id = "vvG1zZpmTbud8h"
+    else:
+        event_id = flask.request.get_json()["event_id"]
+
+    event_data = get_event_detail(event_id)
+
+    msg = Message(
+        "Hello from the other side!", sender=email, recipients="bxie2@student.gsu.edu"
+    )
+    msg.body = (
+        "Hello, This is the event information"
+        + event_data
+        + "do you want to come with me ?"
+    )
+    mail.send(msg)
+
+    return "Message sent!"
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 if __name__ == "__main__":

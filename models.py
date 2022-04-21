@@ -25,9 +25,11 @@ class User(db.Model):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
 
-#reviews
+
+# reviews
 class Review(db.Model):
     """Review for the events"""
+
     __tablename__ = "reviews"
     id = db.Column(
         db.Integer, primary_key=True
