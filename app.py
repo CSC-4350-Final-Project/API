@@ -7,7 +7,7 @@ from flask import request, jsonify
 from flask_mail import Mail
 from flask_mail import Message
 from dotenv import find_dotenv, load_dotenv
-from flask_login import current_user, user_logged_in
+from flask_login import current_user
 from werkzeug.security import check_password_hash
 from flask_cors import CORS
 from flask_jwt_extended import (
@@ -153,12 +153,10 @@ def event_detail(event_id):
 def review():
     "review for event"
     if flask.request.method == "GET":
-        event_id = "vvG1zZpmTbud8h"
-    else:
         data = flask.request.form
+        event_id = flask.request.get_json()["event_id"]
 
     event_data = get_event_detail(event_id)
-
 
     if "add_review" in data:
         new_review = Review(
@@ -171,7 +169,6 @@ def review():
         db.session.commit()
 
         event_id = event_data["event_id"]
-    
 
     reviews = Review.query.filter_by(event_id=event_id).all()
 
@@ -191,15 +188,12 @@ def share_event():
     email = request.get_json()["email"]
 
     if flask.request.method == "GET":
-        event_id = "vvG1zZpmTbud8h"
-    else:
         event_id = flask.request.get_json()["event_id"]
+        recipients = flask.request.get_json()["recipients"]
 
     event_data = get_event_detail(event_id)
 
-    msg = Message(
-        "Hello from the other side!", sender=email, recipients="bxie2@student.gsu.edu"
-    )
+    msg = Message("Hello from the other side!", sender=email, recipients=recipients)
     msg.body = (
         "Hello, This is the event information"
         + event_data
@@ -208,10 +202,6 @@ def share_event():
     mail.send(msg)
 
     return "Message sent!"
-
-
-if __name__ == "__main__":
-    app.run(debug=True)
 
 
 if __name__ == "__main__":
