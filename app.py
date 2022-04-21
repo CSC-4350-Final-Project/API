@@ -146,6 +146,21 @@ def homepage():
     data = get_event_data()
     return flask.jsonify(data)
 
+@app.route('/favorites')
+def user_favorites():
+    "Get the user's favorited events"
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+
+    favorites = Favorites.query.filter_by(user_id=user_id).all()
+
+    output = []
+
+    for favorite in favorites:
+        output.append(get_event_detail(favorite.event_id))
+
+    return jsonify(output)
+
 @app.route("/favorites/<string:event_id>", methods=["POST", "GET"])
 def favorites(event_id):
     """Returns a list of favorite events"""
