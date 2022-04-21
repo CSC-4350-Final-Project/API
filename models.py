@@ -51,3 +51,4 @@ class Going(db.Model):
     event_id = db.Column(db.Text)
     status = db.Column(db.Text)
     date_updated = db.Column(db.DateTime, default=db.func.now())
+    
