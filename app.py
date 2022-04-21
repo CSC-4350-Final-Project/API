@@ -1,7 +1,6 @@
-# pylint: disable=no-member
+# pylint: disable=no-member,too-many-branches,duplicate-code
 """Main app"""
 import os
-from datetime import timedelta
 import flask
 from flask import request, jsonify
 from flask_mail import Mail
@@ -16,28 +15,16 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import Review, db, User
 from tm import get_event_data
 from events import get_event_list, get_event_detail
+from models import db, User, Favorites, Comment, Going, Review
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
+app.config.from_object("config.Config")
 CORS(app)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_POOL_SIZE"] = 100
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
-app.config["MAIL_SERVER"] = "smtp.mailtrap.io"
-app.config["MAIL_PORT"] = 2525
-app.config["MAIL_USERNAME"] = "97e041d5e367c7"
-app.config["MAIL_PASSWORD"] = "cfaf5b99f8bafb"
-app.config["MAIL_USE_TLS"] = True
-app.config["MAIL_USE_SSL"] = False
 mail = Mail(app)
-
 jwt = JWTManager(app)
 
 db.init_app(app)
@@ -45,7 +32,6 @@ with app.app_context():
     db.create_all()
 
 # ROUTES
-
 # Login
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -67,7 +53,9 @@ def login():
             }
         )
 
-    return jsonify({"error": True, "message": "Invalid username or password."})
+    return jsonify(
+        {"error": True, "message": "Invalid username or password. Please try again."}
+    )
 
 
 # Register
@@ -110,42 +98,49 @@ def register():
 
 
 # Profile
-@app.route("/profile")
+@app.route("/profile", methods=["GET"])
 def profile():
     """Profile page with current user information"""
     verify_jwt_in_request(optional=False)
+
     user_id = get_jwt_identity()
+    user = User.query.filter_by(id=user_id).first()
 
-    my_info = {
-        "user_id": user_id,
-        "error": False,
-        "message": "You are in Profile page",
-    }
-    return jsonify(my_info)
+    if request.method == "GET":
+        user_info = {
+            "user_id": user.id,
+            "email": user.email,
+            "username": user.username,
+        }
+    return jsonify(user_info)
 
 
-# routes go here
+# Search
 @app.route("/search", methods=["GET", "POST"])
 def index():
     """Returns root endpoint HTML"""
-    if flask.request.method == "GET":
-        postal_code = "30303"
-        keyword = ""
-    else:
-        postal_code = flask.request.get_json()["postal_code"]
-        keyword = flask.request.get_json()["keyword"]
+    try:
+        if flask.request.method == "GET":
+            postal_code = "30303"
+            keyword = ""
+        else:
+            postal_code = flask.request.get_json()["postal_code"] or "30303"
+            keyword = flask.request.get_json()["keyword"]
 
-    event_data = get_event_list(postal_code, keyword)
+        event_data = get_event_list(postal_code, keyword)
 
-    return flask.jsonify(event_data)
+        if "_embedded" in event_data:
+            return flask.jsonify(event_data["_embedded"]["events"])
+        return flask.jsonify([])
+
+    except ValueError:
+        return flask.jsonify([])
 
 
-@app.route("/event_detail/<string:event_id>", methods=["GET"])
+@app.route("/event_detail/<string:event_id>", methods=["POST", "GET"])
 def event_detail(event_id):
     """Get event detail"""
-
     event_data = get_event_detail(event_id)
-
     return flask.jsonify(event_data)
 
 
@@ -202,6 +197,142 @@ def share_event():
     mail.send(msg)
 
     return "Message sent!"
+
+
+@app.route("/favorites")
+def user_favorites():
+    "Get the user's favorited events"
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+
+    db_favorites = Favorites.query.filter_by(user_id=user_id).all()
+
+    output = []
+
+    for favorite in db_favorites:
+        output.append(get_event_detail(favorite.event_id))
+
+    return jsonify(output)
+
+
+@app.route("/favorites/<string:event_id>", methods=["POST", "GET"])
+def favorites(event_id):
+    """Returns a list of favorite events"""
+
+    verify_jwt_in_request(optional=False)
+    user_id = get_jwt_identity()
+
+    if request.method == "POST":
+        is_favorited = Favorites.query.filter_by(
+            event_id=event_id, user_id=user_id
+        ).first()
+        # if this event has been favorited, remove from database
+        if is_favorited:
+            Favorites.query.filter_by(event_id=event_id, user_id=user_id).delete()
+            db.session.commit()
+            print(is_favorited, event_id, user_id)
+            return jsonify({})
+        # Otherwise, add as a new favorite
+        new_favorite = Favorites(user_id=user_id, event_id=event_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({"message": "New favorite added to database"})
+    if request.method == "GET":
+        events = Favorites.query.filter_by(event_id=event_id, user_id=user_id).first()
+        if events:
+            return jsonify({"is_favorite": True})
+        return jsonify({"is_favorite": False})
+
+    return jsonify({"message": "Successfully added"})
+
+
+@app.route("/event/<string:event_id>/comment", methods=["GET", "POST"])
+def post_comment(event_id):
+    """Post and get comments for a specific event"""
+    if flask.request.method == "POST":
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        text = flask.request.get_json()
+
+        new_comment = Comment(user_id=user_id, text=text, event_id=event_id)
+
+        db.session.add(new_comment)
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    comments = (
+        db.session.query(Comment, User)
+        .filter(User.id == Comment.user_id)
+        .filter_by(event_id=event_id)
+        .order_by(Comment.id.asc())
+        .all()
+    )
+
+    output = []
+
+    for comment, user in comments:
+        output.append(
+            {
+                "username": user.username,
+                "user_id": user.id,
+                "text": comment.text,
+                "date_posted": comment.date_posted,
+            }
+        )
+    return flask.jsonify(output)
+
+
+@app.route("/event/<string:event_id>/share", methods=["POST"])
+def share(event_id):
+    "Share an event with other users through phone/email"
+    print(event_id)
+    # Implement back-end sharing here
+    return flask.jsonify()
+
+
+@app.route("/event/<string:event_id>/going", methods=["GET", "POST"])
+def going(event_id):
+    """Post and get comments for a specific event"""
+
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+
+    if flask.request.method == "POST":
+
+        data = flask.request.get_json()
+        going_id = data["id"]
+        status = data["value"]
+        date_updated = data["dateUpdated"]
+
+        if not going_id:
+            new_status = Going(user_id=user_id, status=status, event_id=event_id)
+            db.session.add(new_status)
+        else:
+            db.session.query(Going).filter(Going.id == going_id).update(
+                {"status": status, "date_updated": date_updated}
+            )
+
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    going_status = (
+        db.session.query(Going)
+        .filter(Going.user_id == user_id)
+        .filter(Going.event_id == event_id)
+        .first()
+    )
+
+    output = {}
+
+    if going_status is None:
+        output["id"] = None
+    else:
+        output["id"] = going_status.id
+        output["status"] = going_status.status
+        output["date_updated"] = going_status.date_updated
+    return flask.jsonify(output)
 
 
 if __name__ == "__main__":
