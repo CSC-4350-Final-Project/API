@@ -25,6 +25,15 @@ class User(db.Model):
         return check_password_hash(self.password_hash, password)
 
 
+class Favorites(db.Model):
+    """Favorites table"""
+
+    __tablename__ = "favorites"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer)
+    event_id = db.Column(db.String(100))
+
+
 class Comment(db.Model):
     """Comments table"""
 
