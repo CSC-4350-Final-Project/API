@@ -24,6 +24,7 @@ class User(db.Model):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
 
+
 class Favorites(db.Model):
     """Favorites table"""
 
@@ -31,6 +32,7 @@ class Favorites(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
     event_id = db.Column(db.String(100))
+
 
 class Comment(db.Model):
     """Comments table"""
@@ -41,6 +43,7 @@ class Comment(db.Model):
     event_id = db.Column(db.Text)
     text = db.Column(db.Text)
     date_posted = db.Column(db.DateTime, default=db.func.now())
+
 
 class Going(db.Model):
     """Going/not going/unsure status"""
