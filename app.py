@@ -177,26 +177,25 @@ def homepage():
     return flask.jsonify(data)
 
 
-@app.route("/share_event")
-def share_event():
+@app.route("/<string:event_id>/share_event", methods=["POST"])
+def share_event(event_id):
     "share event with email"
     email = request.get_json()["email"]
-
-    if flask.request.method == "GET":
-        event_id = flask.request.get_json()["event_id"]
-        recipients = flask.request.get_json()["recipients"]
-
+    url = request.get_json()["url"]
     event_data = get_event_detail(event_id)
 
-    msg = Message("Hello from the other side!", sender=email, recipients=recipients)
-    msg.body = (
-        "Hello, This is the event information"
-        + event_data
-        + "do you want to come with me ?"
+    msg = Message(
+        "Hello from the other side!",
+        sender="eventplanner4350@gmail.com",
+        recipients=[email],
     )
+
+    msg.body = f"Hello, you've been invited to {event_data['name']}!\
+    Would you like to come with me?\n\nView event details here: {url}"
+    print(request.base_url)
     mail.send(msg)
 
-    return "Message sent!"
+    return jsonify("Message sent!")
 
 
 @app.route("/favorites")
@@ -281,14 +280,6 @@ def post_comment(event_id):
             }
         )
     return flask.jsonify(output)
-
-
-@app.route("/event/<string:event_id>/share", methods=["POST"])
-def share(event_id):
-    "Share an event with other users through phone/email"
-    print(event_id)
-    # Implement back-end sharing here
-    return flask.jsonify()
 
 
 @app.route("/event/<string:event_id>/going", methods=["GET", "POST"])

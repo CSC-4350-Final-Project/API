@@ -1,5 +1,5 @@
 """Schemas for our database"""
-# pylint: disable=no-member,too-few-public-methods,undefined-variable,duplicate-code
+# pylint: disable=no-member,too-few-public-methods,duplicate-code
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -14,8 +14,6 @@ class User(db.Model):
     email = db.Column(db.String(80), unique=True)
     username = db.Column(db.String(100))
     password_hash = db.Column(db.String(500))
-
-    __table_args__ = (db.ForeignKeyConstraint([userid], [User.id]), {})
 
     def set_password(self, password):
         """Create a unique password hash for user's passwords"""
@@ -45,8 +43,6 @@ class Review(db.Model):
         self.userid = userid
         self.username = username
         self.comment = comment
-
-    __table_args__ = (db.ForeignKeyConstraint([userid], [User.id]), {})
 
 
 class Favorites(db.Model):
