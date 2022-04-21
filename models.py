@@ -31,3 +31,23 @@ class Favorites(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer)
     event_id = db.Column(db.String(100))
+
+class Comment(db.Model):
+    """Comments table"""
+
+    __tablename__ = "comments"
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    event_id = db.Column(db.Text)
+    text = db.Column(db.Text)
+    date_posted = db.Column(db.DateTime, default=db.func.now())
+
+class Going(db.Model):
+    """Going/not going/unsure status"""
+
+    __tablename__ = "going"
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    event_id = db.Column(db.Text)
+    status = db.Column(db.Text)
+    date_updated = db.Column(db.DateTime, default=db.func.now())

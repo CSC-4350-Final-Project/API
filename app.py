@@ -1,7 +1,6 @@
 # pylint: disable=no-member
 """Main app"""
 import os
-from datetime import timedelta
 import flask
 from flask import request, jsonify
 from dotenv import find_dotenv, load_dotenv
@@ -13,20 +12,16 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-from models import db, User, Favorites
+
+from models import db, User, Favorites, Comment, Going
 from tm import get_event_data
 from events import get_event_list, get_event_detail
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
+app.config.from_object("config.Config")
 CORS(app)
-
-app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-app.config["SQLALCHEMY_POOL_SIZE"] = 100
-app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
 
 jwt = JWTManager(app)
 
@@ -122,17 +117,22 @@ def profile():
 @app.route("/search", methods=["GET", "POST"])
 def index():
     """Returns root endpoint HTML"""
-    if flask.request.method == "GET":
-        postal_code = "30303"
-        keyword = ""
-    else:
-        postal_code = flask.request.get_json()["postal_code"]
-        keyword = flask.request.get_json()["keyword"]
+    try:
+        if flask.request.method == "GET":
+            postal_code = "30303"
+            keyword = ""
+        else:
+            postal_code = flask.request.get_json()["postal_code"] or "30303"
+            keyword = flask.request.get_json()["keyword"]
 
-    event_data = get_event_list(postal_code, keyword)
+        event_data = get_event_list(postal_code, keyword)
 
-    return flask.jsonify(event_data)
+        if "_embedded" in event_data:
+            return flask.jsonify(event_data["_embedded"]["events"])
+        return flask.jsonify([])
 
+    except ValueError:
+        return flask.jsonify([])
 
 @app.route("/event_detail/<string:event_id>", methods=["POST", "GET"])
 def event_detail(event_id):
@@ -173,6 +173,95 @@ def favorites(event_id):
         return jsonify({"is_favorite": False})
 
     return jsonify({"message": "Successfully added"})
+
+@app.route("/event/<string:event_id>/comment", methods=["GET", "POST"])
+def post_comment(event_id):
+    """Post and get comments for a specific event"""
+    if flask.request.method == "POST":
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
+        text = flask.request.get_json()
+
+        new_comment = Comment(user_id=user_id, text=text, event_id=event_id)
+
+        db.session.add(new_comment)
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    comments = (
+        db.session.query(Comment, User)
+        .filter(User.id == Comment.user_id)
+        .filter_by(event_id=event_id)
+        .order_by(Comment.id.asc())
+        .all()
+    )
+
+    output = []
+
+    for comment, user in comments:
+        output.append(
+            {
+                "username": user.username,
+                "user_id": user.id,
+                "text": comment.text,
+                "date_posted": comment.date_posted,
+            }
+        )
+    return flask.jsonify(output)
+
+
+@app.route("/event/<string:event_id>/share", methods=["POST"])
+def share(event_id):
+    "Share an event with other users through phone/email"
+    print(event_id)
+    # Implement back-end sharing here
+    return flask.jsonify()
+
+
+@app.route("/event/<string:event_id>/going", methods=["GET", "POST"])
+def going(event_id):
+    """Post and get comments for a specific event"""
+
+    verify_jwt_in_request()
+    user_id = get_jwt_identity()
+
+    if flask.request.method == "POST":
+
+        data = flask.request.get_json()
+        going_id = data["id"]
+        status = data["value"]
+        date_updated = data["dateUpdated"]
+
+        if not going_id:
+            new_status = Going(user_id=user_id, status=status, event_id=event_id)
+            db.session.add(new_status)
+        else:
+            db.session.query(Going).filter(Going.id == going_id).update(
+                {"status": status, "date_updated": date_updated}
+            )
+
+        db.session.commit()
+
+        return flask.jsonify({"success": True})
+
+    going_status = (
+        db.session.query(Going)
+        .filter(Going.user_id == user_id)
+        .filter(Going.event_id == event_id)
+        .first()
+    )
+
+    output = {}
+
+    if going_status is None:
+        output["id"] = None
+    else:
+        output["id"] = going_status.id
+        output["status"] = going_status.status
+        output["date_updated"] = going_status.date_updated
+    return flask.jsonify(output)
+
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT", "4000"))
     HOST = os.getenv("IP", "0.0.0.0")
