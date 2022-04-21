@@ -1,6 +1,5 @@
 """Schemas for our database"""
-# pylint: disable=no-member
-# pylint: disable=too-few-public-methods
+# pylint: disable=no-member,too-few-public-methods,duplicate-code
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -23,6 +22,27 @@ class User(db.Model):
     def check_password(self, password):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
+
+
+# reviews
+class Review(db.Model):
+    """Review for the events"""
+
+    __tablename__ = "reviews"
+    id = db.Column(
+        db.Integer, primary_key=True
+    )  # primary keys are required by SQLAlchemy
+    moiveid = db.Column(db.Integer)
+    userid = db.Column(db.Integer)
+    username = db.Column(db.String(1000))
+    comment = db.Column(db.String(1000))
+    rating = db.Column(db.Integer)
+
+    def __init__(self, event_id, userid, username, comment):
+        self.event_id = event_id
+        self.userid = userid
+        self.username = username
+        self.comment = comment
 
 
 class Favorites(db.Model):

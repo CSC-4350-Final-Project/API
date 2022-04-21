@@ -1,9 +1,12 @@
-# pylint: disable=no-member
+# pylint: disable=no-member,too-many-branches,duplicate-code
 """Main app"""
 import os
 import flask
 from flask import request, jsonify
+from flask_mail import Mail
+from flask_mail import Message
 from dotenv import find_dotenv, load_dotenv
+from flask_login import current_user
 from werkzeug.security import check_password_hash
 from flask_cors import CORS
 from flask_jwt_extended import (
@@ -12,17 +15,16 @@ from flask_jwt_extended import (
     get_jwt_identity,
     verify_jwt_in_request,
 )
-
-from models import db, User, Favorites, Comment, Going
 from tm import get_event_data
 from events import get_event_list, get_event_detail
+from models import db, User, Favorites, Comment, Going, Review
 
 load_dotenv(find_dotenv())
 
 app = flask.Flask(__name__)
 app.config.from_object("config.Config")
 CORS(app)
-
+mail = Mail(app)
 jwt = JWTManager(app)
 
 db.init_app(app)
@@ -142,11 +144,58 @@ def event_detail(event_id):
     return flask.jsonify(event_data)
 
 
+@app.route("/review", methods=["GET", "POST"])
+def review():
+    "review for event"
+    if flask.request.method == "GET":
+        data = flask.request.form
+        event_id = flask.request.get_json()["event_id"]
+
+    event_data = get_event_detail(event_id)
+
+    if "add_review" in data:
+        new_review = Review(
+            event_data["event_id"],
+            current_user.id,
+            current_user.name,
+            event_data["comment"],
+        )
+        db.session.add(new_review)
+        db.session.commit()
+
+        event_id = event_data["event_id"]
+
+    reviews = Review.query.filter_by(event_id=event_id).all()
+
+    return flask.jsonify(reviews)
+
+
 @app.route("/homepage")
 def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
+
+
+@app.route("/<string:event_id>/share_event", methods=["POST"])
+def share_event(event_id):
+    "share event with email"
+    email = request.get_json()["email"]
+    url = request.get_json()["url"]
+    event_data = get_event_detail(event_id)
+
+    msg = Message(
+        "Hello from the other side!",
+        sender="eventplanner4350@gmail.com",
+        recipients=[email],
+    )
+
+    msg.body = f"Hello, you've been invited to {event_data['name']}!\
+    Would you like to come with me?\n\nView event details here: {url}"
+    print(request.base_url)
+    mail.send(msg)
+
+    return jsonify("Message sent!")
 
 
 @app.route("/favorites")
@@ -231,14 +280,6 @@ def post_comment(event_id):
             }
         )
     return flask.jsonify(output)
-
-
-@app.route("/event/<string:event_id>/share", methods=["POST"])
-def share(event_id):
-    "Share an event with other users through phone/email"
-    print(event_id)
-    # Implement back-end sharing here
-    return flask.jsonify()
 
 
 @app.route("/event/<string:event_id>/going", methods=["GET", "POST"])
