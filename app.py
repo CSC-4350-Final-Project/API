@@ -1,6 +1,5 @@
 # pylint: disable=no-member
 """Main app"""
-import json
 import os
 from datetime import timedelta
 import flask
@@ -34,10 +33,8 @@ jwt = JWTManager(app)
 db.init_app(app)
 with app.app_context():
     db.create_all()
-    #db.drop_all()
 
 # ROUTES
-
 # Login
 @app.route("/login", methods=["POST", "GET"])
 def login():
@@ -140,18 +137,14 @@ def index():
 @app.route("/event_detail/<string:event_id>", methods=["POST", "GET"])
 def event_detail(event_id):
     """Get event detail"""
-    
-    event_data = get_event_detail(event_id) 
-
+    event_data = get_event_detail(event_id)
     return flask.jsonify(event_data)
-
 
 @app.route("/homepage")
 def homepage():
     """This method gets us data for upcoming events from Ticketmaster API"""
     data = get_event_data()
     return flask.jsonify(data)
-
 
 @app.route("/favorites/<string:event_id>", methods=["POST", "GET"])
 def favorites(event_id):
@@ -169,24 +162,17 @@ def favorites(event_id):
             print(is_favorited, event_id, user_id)
             return jsonify({})
         #Otherwise, add as a new favorite
-        else:
-            new_favorite = Favorites(user_id=user_id, event_id=event_id)
-            db.session.add(new_favorite)
-            db.session.commit()
-            return jsonify({"message": "New favorite added to database"})  
-    
-    elif request.method == "GET":
+        new_favorite = Favorites(user_id=user_id, event_id=event_id)
+        db.session.add(new_favorite)
+        db.session.commit()
+        return jsonify({"message": "New favorite added to database"})
+    if request.method == "GET":
         events = Favorites.query.filter_by(event_id=event_id, user_id=user_id).first()
-        
         if events:
             return jsonify({"is_favorite": True})
-        else:
-            return jsonify({"is_favorite": False})
+        return jsonify({"is_favorite": False})
 
     return jsonify({"message": "Successfully added"})
-
-    
-
 if __name__ == "__main__":
     PORT = int(os.getenv("PORT", "4000"))
     HOST = os.getenv("IP", "0.0.0.0")

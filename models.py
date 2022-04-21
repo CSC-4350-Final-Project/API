@@ -1,5 +1,6 @@
 """Schemas for our database"""
 # pylint: disable=no-member
+# pylint: disable=too-few-public-methods
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -22,7 +23,6 @@ class User(db.Model):
     def check_password(self, password):
         """check a new hashed against the created hash"""
         return check_password_hash(self.password_hash, password)
-
 
 class Favorites(db.Model):
     """Favorites table"""
