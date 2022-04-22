@@ -35,6 +35,18 @@ With over 230K+ events available in the API, coverage spans different countries,
 
 ***
 
+# **Functionality/Purpose of App**
+**Functionality:** <br>
+- A user will have the ability to: Sign up, Sign in, Logout <br>
+- Once a user logs in they will be presented with a homepage featuring events held in Georgia pulled from the TicketMaster API <br>
+- If a user decides to select one of the events it will then take them to a page that presents all the necessary information for that event pulled form the API as well as buttons that allow the user to toggle whether or not they are interested in attending the event as well as an ability to share (via email) and favorite the event <br>
+- In the navigation bar there is a Search tab, which if the user selects will prompt them to a page which will ask them to submit a keyword and a ZIP Code. Using that information the API will search for events in the area the ZIP Code is located in that also corresponds with a keyword provided <br>
+- Then there is the Favorites tab, which just shows the events that the user has selected as their favorites <br>
+- The User tab in the navigation bar will take the user to a page that will showcase all of that users relative information <br>
+
+**Purpose:** <br>
+
+
 # **Technologies:**
 **Front-end:** ReactJS <br>
 **Back-end:** Python Flask framework <br>
