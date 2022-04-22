@@ -45,7 +45,7 @@ With over 230K+ events available in the API, coverage spans different countries,
 - The User tab in the navigation bar will take the user to a page that will showcase all of that users relative information <br>
 
 **Purpose:** <br>
-
+ The purpose for the Event Planner App was to have a streamlined system for an individual to look up events in the area and convey to their friends their desire or lack there of to see the event. The main goal for this app was for to be as streamlined as possible and allow for our users to have easy access to any event they wanted to see. The next big thing was the ability to communicate with others in the app in order to see which events your group was interested in attending. All of this led to a product that we hope will be a catalyst for people to spend more time together while making that process as easy as possible. <br>
 
 # **Technologies:**
 **Front-end:** ReactJS <br>
