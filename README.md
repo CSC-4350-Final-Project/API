@@ -1,7 +1,7 @@
 # **Project Name:** Event Planner
 
 # **API: Ticketmaster API**
-**Heroku link to app:** https://csc4350-final-project-ui.herokuapp.com/login <br>
+**Heroku link to app:** https://csc4350-final-project-ui-sp-2.herokuapp.com/login <br>
 ***
 **Links to our project repositories:**<br>
 1. https://github.com/CSC-4350-Final-Project/UI (Frontend)
